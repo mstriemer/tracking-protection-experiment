@@ -1,0 +1,64 @@
+[
+  {
+    "namespace": "classifiedWebRequest",
+    "description": "webRequest APIs with URL classification",
+    "permissions": ["experiments.cwr"],
+    "events": [
+      {
+        "name": "onBeforeRequest",
+        "type": "function",
+        "description": "onBeforeRequest with classified URLs.",
+        "parameters": [
+          {
+            "type": "object"
+          }
+        ],
+        "extraParameters": [
+          {
+            "name": "filter",
+            "type": "object",
+            "properties": {
+              "urls": {
+                "type": "array",
+                "description": "A list of URLs or URL patterns. Requests that cannot match any of the URLs will be filtered out.",
+                "items": { "type": "string" },
+                "minItems": 1
+              },
+              "classifiedAs": {
+                "type": "array",
+                "items": { "type": "string" },
+                "minItems": 1
+              }
+            }
+          },
+          {
+            "name": "extraInfoSpec",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "optional": true
+          }
+        ],
+        "returns": {
+          "type": "object",
+          "properties": {
+            "cancel": {
+              "type": "boolean",
+              "optional": true
+            }
+          }
+        }
+      }
+    ],
+    "functions": [
+      {
+        "name": "classifyUrls",
+        "type": "function",
+        "description": "Set a list of URLs to classify.",
+        "async": true,
+        "parameters": [ ]
+      }
+    ]
+  }
+]

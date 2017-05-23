@@ -12,11 +12,11 @@
     in api.js and schema.json.
   -->
   <Description about="urn:mozilla:install-manifest">
-    <em:id>boilerplate@experiments.addons.mozilla.org</em:id>
-    <em:name>Boilerplate API</em:name>
+    <em:id>cwr@experiments.addons.mozilla.org</em:id>
+    <em:name>classifiedWebRequest API</em:name>
     <em:type>256</em:type>
     <em:version>0.1</em:version>
-    <em:description>Boilerplate api</em:description>
+    <em:description>classifiedWebRequest api</em:description>
     <em:creator>Mozilla</em:creator>
 
     <em:targetApplication>
