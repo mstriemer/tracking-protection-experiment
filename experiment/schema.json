@@ -26,9 +26,7 @@
                 "minItems": 1
               },
               "classifiedAs": {
-                "type": "array",
-                "items": { "type": "string" },
-                "minItems": 1
+                "type": "string"
               }
             }
           },
