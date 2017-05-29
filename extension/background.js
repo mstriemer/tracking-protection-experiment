@@ -72,7 +72,7 @@ async function init() {
         console.log(request.url, request.originUrl);
         return { cancel: true };
       },
-      { classifiedAs: ["tracker"] },
+      { classifiedAs: "tracker" },
       ["blocking"]);
   } else {
     const blocklist = new Set(domains);
