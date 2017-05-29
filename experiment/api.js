@@ -1,9 +1,11 @@
-/* global ExtensionAPI, Services, Components, tabTracker, MatchPattern, WebRequest */
-const { utils: Cu } = Components;
+/* global ExtensionAPI, Services, Components, MatchPattern, WebRequest */
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/MatchPattern.jsm");
 Cu.import("resource://gre/modules/WebRequest.jsm");
+
+const ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
 function SingletonEventManager(context, name, register) {
   this.context = context;
@@ -103,23 +105,63 @@ SingletonEventManager.prototype = {
   },
 };
 
+/*
+ * Generate all domain combinations for a URL.
+ *
+ * https://sub.example.co.uk/foo becomes:
+ *   ["uk", "co.uk", "example.co.uk", "sub.example.co.uk"]
+ */
+function allHostsForUrl(url) {
+  const uri = ioService.newURI(url);
+  return uri.host.split('.').reduceRight((hosts, part) => {
+    if (hosts.length === 0) {
+      return [part];
+    }
+    return [...hosts, `${part}.${hosts[hosts.length - 1]}`];
+  }, []);
+}
+
 // eslint-disable-next-line no-unused-vars
 class API extends ExtensionAPI {
   getAPI(context) {
     const eventName = "onBeforeRequest";
+    // urlsForClassification is a mapping of classification names to a Set of
+    // URL fragments that match the classification.
+    const urlsForClassification = {};
+
+    function isUrlClassifiedAs(url, name) {
+      const urls = urlsForClassification[name];
+      if (!urls) {
+        return false;
+      }
+      return allHostsForUrl(url).some((host) => urls.has(host));
+    }
 
     return {
       classifiedWebRequest: {
 
-        classifyUrls() {
-          return Promise.resolve("Hello, world!");
+        classifyUrls(name, urls) {
+          urlsForClassification[name] = new Set(urls);
         },
+
 
         onBeforeRequest: new SingletonEventManager(
           context,
            "classifiedWebRequest.onBeforeRequest",
-          (fire, filter, info) => {
+          (fire, filterAll, info) => {
+            const { classifiedAs, urls, ...filter } = filterAll;
+            if (urls) {
+              filter.urls = urls;
+            } else {
+              filter.urls = ["*://*/*"];
+            }
+
             let listener = data => {
+              // If this URL isn't in the classified set then return.
+              if (!isUrlClassifiedAs(data.url, classifiedAs)) {
+                return;
+              }
+
               // Prevent listening in on requests originating from system principal to
               // prevent tinkering with OCSP, app and addon updates, etc.
               if (data.isSystemPrincipal) {
@@ -139,9 +181,10 @@ class API extends ExtensionAPI {
               }
 
               let browserData = {tabId: -1, windowId: -1};
-              if (data.browser) {
-                browserData = tabTracker.getBrowserData(data.browser);
-              }
+              // Tab and window filtering isn't supported.
+              // if (data.browser) {
+              //   browserData = tabTracker.getBrowserData(data.browser);
+              // }
               if (filter.tabId != null && browserData.tabId != filter.tabId) {
                 return;
               }

@@ -14,4 +14,3 @@
   "permissions": ["experiments.cwr", "webRequest", "webRequestBlocking", "<all_urls>"],
   "version": "0.1"
 }
-

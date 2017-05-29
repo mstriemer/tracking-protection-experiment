@@ -21,6 +21,7 @@
               "urls": {
                 "type": "array",
                 "description": "A list of URLs or URL patterns. Requests that cannot match any of the URLs will be filtered out.",
+                "optional": true,
                 "items": { "type": "string" },
                 "minItems": 1
               },
@@ -56,8 +57,22 @@
         "name": "classifyUrls",
         "type": "function",
         "description": "Set a list of URLs to classify.",
-        "async": true,
-        "parameters": [ ]
+        "parameters": [
+          {
+            "name": "name",
+            "type": "string",
+            "description": "The name for the classification."
+          },
+          {
+            "name": "urls",
+            "type": "array",
+            "description": "The URL fragments to classify.",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
+        ]
       }
     ]
   }
