@@ -113,7 +113,7 @@ SingletonEventManager.prototype = {
  */
 function allHostsForUrl(url) {
   const uri = ioService.newURI(url);
-  return uri.host.split('.').reduceRight((hosts, part) => {
+  return uri.host.split(".").reduceRight((hosts, part) => {
     if (hosts.length === 0) {
       return [part];
     }
@@ -129,19 +129,38 @@ class API extends ExtensionAPI {
     // URL fragments that match the classification.
     const urlsForClassification = {};
 
-    function isUrlClassifiedAs(url, name) {
-      const urls = urlsForClassification[name];
-      if (!urls) {
+    function isThirdPartyRequest(request) {
+      const { originUrl, url } = request;
+      const originHosts = new Set(allHostsForUrl(originUrl));
+      return !allHostsForUrl(url).some((host) => originHosts.has(host));
+    }
+
+    function isUrlClassifiedAs(request, name) {
+      // If this classification hasn't been set up then it doesn't match.
+      if (!(name in urlsForClassification)) {
         return false;
       }
-      return allHostsForUrl(url).some((host) => urls.has(host));
+      const { domains, thirdParty } = urlsForClassification[name];
+      // If it should be third party but isn't then it doesn't match.
+      if (thirdParty && !isThirdPartyRequest(request)) {
+        return false;
+      }
+      // Check if it matches the domain if domains are set.
+      if (domains) {
+        return allHostsForUrl(request.url).some((host) => domains.has(host));
+      }
+      // Domains aren't set and it matches third party, it's a match.
+      return true;
     }
 
     return {
       classifiedWebRequest: {
 
-        classifyUrls(name, urls) {
-          urlsForClassification[name] = new Set(urls);
+        classifyUrls(name, { domains, thirdParty = false }) {
+          urlsForClassification[name] = {
+            domains: new Set(domains),
+            thirdParty,
+          };
         },
 
 
@@ -158,7 +177,7 @@ class API extends ExtensionAPI {
 
             let listener = data => {
               // If this URL isn't in the classified set then return.
-              if (!isUrlClassifiedAs(data.url, classifiedAs)) {
+              if (!isUrlClassifiedAs(data, classifiedAs)) {
                 return;
               }
 

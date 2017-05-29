@@ -2,7 +2,7 @@ async function getTrackerDomains() {
   const servicesUrl = browser.extension.getURL("services.json");
   const { categories } = await (await fetch(servicesUrl)).json();
   const domains = [];
-  const ignoredCategory = (category) => categorie === "Content";
+  const ignoredCategory = (category) => category === "Content";
 
   Object.keys(categories).forEach((category) => {
     if (ignoredCategory(category)) {
@@ -34,7 +34,10 @@ async function getPublicSuffixes() {
 
 async function setupClassifyUrls(domains) {
   console.log("Classify domains as trackers", domains);
-  browser.classifiedWebRequest.classifyUrls("tracker", domains);
+  browser.classifiedWebRequest.classifyUrls("tracker", {
+    domains,
+    thirdParty: true,
+  });
 }
 
 async function init() {
@@ -51,15 +54,10 @@ async function init() {
     }, []).filter((host) => !publicSuffixes.has(host));
   }
 
-  function isThirdPartyRequest(topHost, requestHost) {
-    const topHosts = new Set(allHostsForUrl(topHost));
-    return !allHostsForUrl(requestHost).some((host) => topHosts.has(host));
-  }
-
-  function handleRequest(request) {
-    const isThirdParty = isThirdPartyRequest(request.originUrl, request.url);
-    console.log(request.url, request.originUrl, isThirdParty);
-    return { cancel: isThirdParty };
+  function isThirdPartyRequest(request) {
+    const { originUrl, url } = request;
+    const originHosts = new Set(allHostsForUrl(originUrl));
+    return !allHostsForUrl(url).some((host) => originHosts.has(host));
   }
 
   function isBlockedRequest(blocklist, request) {
@@ -70,7 +68,10 @@ async function init() {
     await setupClassifyUrls(domains);
     console.log("Using classifiedWebRequest");
     browser.classifiedWebRequest.onBeforeRequest.addListener(
-      handleRequest,
+      (request) => {
+        console.log(request.url, request.originUrl);
+        return { cancel: true };
+      },
       { classifiedAs: ["tracker"] },
       ["blocking"]);
   } else {
@@ -78,11 +79,11 @@ async function init() {
     console.log("Using webRequest");
     browser.webRequest.onBeforeRequest.addListener(
       (request) => {
-        console.log('got', request);
-        if (isBlockedRequest(blocklist, request)) {
-          return handleRequest(request);
-        }
-        return { cancel: false };
+        const isThirdParty = isThirdPartyRequest(request);
+        console.log(request.url, request.originUrl, isThirdParty);
+        return {
+          cancel: isThirdParty && isBlockedRequest(blocklist, request),
+        };
       },
       { urls: ["*://*/*"] },
       ["blocking"]);

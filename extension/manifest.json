@@ -11,6 +11,6 @@
   "description": "classifiedWebRequest sample extension.",
   "manifest_version": 2,
   "name": "classifiedWebRequest sample",
-  "permissions": ["experiments.cwr", "webRequest", "webRequestBlocking", "<all_urls>"],
+  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>"],
   "version": "0.1"
 }
