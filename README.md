@@ -5,6 +5,8 @@ tracking protection extension. This is accomplished by updating `webRequest`
 to support classifying requests which can be used to reduce the number of calls
 made to `webRequest` event handlers.
 
+This experiment only implements support for the `onBeforeRequest` event.
+
 ## API
 
 ### `webRequest.classifyRequests(name, options)`
