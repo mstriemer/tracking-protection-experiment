@@ -4,6 +4,8 @@ const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/MatchPattern.jsm");
 Cu.import("resource://gre/modules/WebRequest.jsm");
+Cu.import("resource://gre/modules/FileUtils.jsm");
+Cu.import("resource://gre/modules/NetUtil.jsm");
 
 const ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 
@@ -105,21 +107,56 @@ SingletonEventManager.prototype = {
   },
 };
 
+function readSync(path) {
+  const file = FileUtils.File(path);
+  let data = "";
+  const fstream = Cc["@mozilla.org/network/file-input-stream;1"].
+                createInstance(Ci.nsIFileInputStream);
+  const cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].
+                createInstance(Ci.nsIConverterInputStream);
+  fstream.init(file, -1, 0, 0);
+  cstream.init(fstream, "UTF-8", 0, 0); // you can use another encoding here if you wish
+
+  let str = {};
+  let read = 0;
+  do {
+    read = cstream.readString(0xffffffff, str); // read as much as we can and put it in str.value
+    data += str.value;
+  } while (read != 0);
+
+  cstream.close(); // this closes fstream
+  return data;
+}
+
+function loadPublicSuffixes() {
+  // TODO: Handle errors.
+  const lines = readSync("/Users/markstriemer/work/tracking-protection-experiment/experiment/public_suffix_list.dat").split("\n");
+  const domains = lines.filter((line) => {
+    return line.length > 0 && !line.startsWith("//");
+  });
+  return new Set(domains);
+}
+
 /*
  * Generate all domain combinations for a URL.
  *
  * https://sub.example.co.uk/foo becomes:
  *   ["uk", "co.uk", "example.co.uk", "sub.example.co.uk"]
  */
-function allHostsForUrl(url) {
-  const uri = ioService.newURI(url);
-  return uri.host.split(".").reduceRight((hosts, part) => {
+const makeAllHostsForUrl = (publicSuffixes) => (url) => {
+  let uri;
+  try {
+    uri = ioService.newURI(url);
+  } catch (e) {
+    return [];
+  }
+  return uri.host.split('.').reduceRight((hosts, part) => {
     if (hosts.length === 0) {
       return [part];
     }
     return [...hosts, `${part}.${hosts[hosts.length - 1]}`];
-  }, []);
-}
+  }, []).filter((host) => !publicSuffixes.has(host));
+};
 
 // eslint-disable-next-line no-unused-vars
 class API extends ExtensionAPI {
@@ -128,9 +165,14 @@ class API extends ExtensionAPI {
     // urlsForClassification is a mapping of classification names to a Set of
     // URL fragments that match the classification.
     const urlsForClassification = {};
+    const publicSuffixes = loadPublicSuffixes();
+    const allHostsForUrl = makeAllHostsForUrl(publicSuffixes);
 
     function isThirdPartyRequest(request) {
       const { originUrl, url } = request;
+      if (!originUrl) {
+        return false;
+      }
       const originHosts = new Set(allHostsForUrl(originUrl));
       return !allHostsForUrl(url).some((host) => originHosts.has(host));
     }
