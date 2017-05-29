@@ -34,7 +34,7 @@ async function getPublicSuffixes() {
 
 async function setupClassifyUrls(domains) {
   console.log("Classify domains as trackers", domains);
-  browser.classifiedWebRequest.classifyUrls("tracker", {
+  browser.classifiedWebRequest.classifyRequests("tracker", {
     domains,
     thirdParty: true,
   });

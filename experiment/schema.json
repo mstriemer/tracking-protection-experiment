@@ -54,9 +54,9 @@
     ],
     "functions": [
       {
-        "name": "classifyUrls",
+        "name": "classifyRequests",
         "type": "function",
-        "description": "Set a list of URLs to classify.",
+        "description": "Set the rules for a classification.",
         "parameters": [
           {
             "name": "name",
@@ -69,10 +69,11 @@
             "properties": {
               "domains": {
                 "type": "array",
-                "description": "The URL fragments to classify.",
+                "description": "The domains to classify.",
                 "items": {
                   "type": "string"
                 },
+                "optional": true,
                 "minItems": 1
               },
               "thirdParty": {

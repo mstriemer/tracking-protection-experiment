@@ -198,7 +198,7 @@ class API extends ExtensionAPI {
     return {
       classifiedWebRequest: {
 
-        classifyUrls(name, { domains, thirdParty = false }) {
+        classifyRequests(name, { domains, thirdParty = false }) {
           urlsForClassification[name] = {
             domains: new Set(domains),
             thirdParty,
