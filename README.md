@@ -3,7 +3,7 @@
 The goal of this API is to improve the performance and ease of writing a
 tracking protection extension. This is accomplished by updating `webRequest`
 to support classifying requests which can be used to reduce the number of calls
-made to the `onBeforeRequest` and `onBeforeHeadersSent` events.
+made to `webRequest` event handlers.
 
 ## API
 
@@ -26,11 +26,11 @@ webRequest.classifyRequests(
     { domains: ["example.com", "example.org"], thirdParty: true })
 ```
 
-### `webRequest.onBeforeRequest`, `webRequest.onBeforeHeadersSent` updates
+### Event handler updates
 
-These events are updated to support the `classifiedAs` filter. The callback
-will only be triggered when a request matches the classification as defined
-by a call to `webRequest.classifyRequests`.
+The filters for events are updated to support the `classifiedAs` filter. The
+callback will only be triggered when a request matches the classification as
+defined by a call to `webRequest.classifyRequests`.
 
 ```js
 webRequest.onBeforeRequest.addListener(
