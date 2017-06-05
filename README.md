@@ -14,13 +14,12 @@ This experiment only implements support for the `onBeforeRequest` event.
 This function will setup request classification which can be hooked into in
 event handlers.
 
-* name: A name for this classification of request.
+* name: A name for this class of request.
 * options: The options to filter requests on.
-    * domains: An array of domains that match this classification.
-        * defaults to all domains.
-    * thirdParty: A boolean representing if this should only match third-party
-                  requests.
-        * defaults to false.
+  * domains: An array of domains that match this class.
+    * defaults to all domains.
+  * thirdParty: A boolean representing if this should only match third-party requests.
+    * defaults to false.
 
 ```js
 webRequest.classifyRequests(
@@ -31,8 +30,8 @@ webRequest.classifyRequests(
 ### Event handler updates
 
 The filters for events are updated to support the `classifiedAs` filter. The
-callback will only be triggered when a request matches the classification as
-defined by a call to `webRequest.classifyRequests`.
+callback will only be triggered when a request matches the class as defined
+by a call to `webRequest.classifyRequests`.
 
 ```js
 webRequest.onBeforeRequest.addListener(
