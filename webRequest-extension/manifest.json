@@ -1,0 +1,16 @@
+{
+  "applications": {
+    "gecko": {
+      "id": "@classifiedWebRequest-manual",
+      "strict_min_version": "42.0"
+    }
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "description": "webRequest implementation of classifiedWebRequest.",
+  "manifest_version": 2,
+  "name": "webRequest sample",
+  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>"],
+  "version": "0.1"
+}
