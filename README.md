@@ -40,3 +40,15 @@ webRequest.onBeforeRequest.addListener(
     { classifiedAs: "tracker" },
     ["blocking"])
 ```
+
+## Structure
+
+There are three components to this repository:
+
+  * `experiment/` is the experiment code to implement the proposed API,
+  * `extension/` is a test extension that uses the proposed API, and
+  * `webRequest-extension/` is a test extension that does not use the proposed API.
+
+## Comments
+
+If you have any comments please [file an issue](https://github.com/mstriemer/tracking-protection-experiment/issues/new).
